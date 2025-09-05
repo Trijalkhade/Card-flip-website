@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    container_name: clubholohub-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Postgres connection (used in backend/database.py)
+      - DATABASE_URL=${DATABASE_URL}
+      # Mongo connection (future use: analytics, NoSQL storage, etc.)
+      - MONGO_URL=${MONGO_URL}
+      # Redis (future: caching, sessions, queues)
+      - REDIS_URL=${REDIS_URL}
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+    command: ["./wait-for-postgres.sh", "postgres", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  frontend:
+    build: ./frontend
+    container_name: clubholohub-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:15
+    container_name: clubholohub-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  mongo:
+    image: mongo:6
+    container_name: clubholohub-mongo
+    volumes:
+      - mongodata:/data/db
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis:7
+    container_name: clubholohub-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:
+  mongodata:

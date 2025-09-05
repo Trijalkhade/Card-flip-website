@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>ClubHoloHub — Holographic Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:100vh; margin:0; background: linear-gradient(135deg,#0f172a,#0b1220); color:#e6eef8; padding:20px;}
+    #card { width:320px; height:420px; perspective:1200px; margin-bottom:20px;}
+    .panel { width:100%; height:100%; border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); box-shadow: 0 20px 50px rgba(2,6,23,0.8); transform-style:preserve-3d; transition: transform 700ms cubic-bezier(.2,.9,.2,1); display:flex; align-items:center; justify-content:center; color:#fff;}
+    .panel.hover { transform: rotateY(360deg) rotateX(8deg) translateZ(40px); }
+    .inner { text-align:center; padding:24px; }
+    .badge { background: rgba(255,255,255,0.06); padding:8px 12px; border-radius:999px; display:inline-block; margin-top:10px;}
+    button { margin-top:12px; padding:8px 12px; border-radius:8px; border: none; cursor:pointer;}
+    #membersOut { text-align:left; max-height:150px; overflow:auto; background:rgba(255,255,255,0.05); border-radius:10px; padding:8px; width:80%; }
+    #eventsList { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:20px; }
+  </style>
+</head>
+<body>
+  <div id="card">
+    <div id="panel" class="panel">
+      <div class="inner">
+        <h2>Rahul Desai</h2>
+        <p>Game Developer — Released 'PixelQuest'</p>
+        <div class="badge">Winner: IndieJam 2024</div>
+        <div><button onclick="flip()">Flip</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:12px;">
+    <button id="loadMembers">Load Members (from API)</button>
+  </div>
+  <pre id="membersOut"></pre>
+
+  <h3 style="margin-top:30px;">Upcoming Events</h3>
+  <div id="eventsList"></div>
+
+<script>
+const panel = document.getElementById('panel');
+let isFlipped = false;
+
+function flip(){
+  isFlipped = !isFlipped;
+  panel.classList.toggle('hover', isFlipped);
+  if (isFlipped) panel.style.transform = '';
+  else panel.style.transform = 'none';
+}
+
+document.getElementById('loadMembers').addEventListener('click', async () => {
+  try {
+    const res = await fetch('http://localhost:8000/members');
+    if (!res.ok) throw new Error("Backend error");
+    const data = await res.json();
+    document.getElementById('membersOut').innerText = JSON.stringify(data, null, 2);
+  } catch (err) {
+    console.error(err);
+    alert('Failed to fetch members — check backend.');
+  }
+});
+
+document.getElementById('card').addEventListener('mousemove', function(e){
+  if (isFlipped) return;
+  const w = this.clientWidth, h = this.clientHeight;
+  const x = (e.offsetX - w/2) / w * 30;
+  const y = (e.offsetY - h/2) / h * -20;
+  panel.style.transform = `rotateY(${x}deg) rotateX(${y}deg) translateZ(10px)`;
+});
+
+document.getElementById('card').addEventListener('mouseleave', function(){
+  panel.style.transform = 'none';
+  if (isFlipped) {
+    isFlipped = false;
+    panel.classList.remove('hover');
+  }
+});
+</script>
+
+<script src="events.js"></script>
+</body>
+</html>

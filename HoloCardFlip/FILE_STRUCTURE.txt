@@ -1,0 +1,31 @@
+ClubHoloHub/
+├─ README.md
+├─ docker-compose.yml
+├─ deployment/
+│  ├─ Jenkinsfile
+│  └─ k8s-backend-deployment.yaml
+├─ backend/
+│  ├─ main.py
+│  ├─ main.py.bak
+│  ├─ auth.py
+│  ├─ database.py
+│  ├─ models.py
+│  ├─ requirements.txt
+│  ├─ wait-for-postgres.sh
+│  └─ Dockerfile
+├─ frontend/
+│  ├─ index.html
+│  ├─ events.js
+│  ├─ login.html
+│  ├─ signup.html
+│  └─ Dockerfile
+├─ docs/
+│  ├─ architecture.md
+│  ├─ design_psychology.md
+│  └─ security_checklist.md
+├─ ml/
+│  └─ recommender_stub.py
+├─ schemas/
+│  ├─ postgres_schema.sql
+│  └─ mongo_example.json
+├─ SECURITY.md

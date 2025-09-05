@@ -1,0 +1,27 @@
+pipeline {
+  agent any
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+    stage('Build Backend') {
+      steps {
+        sh 'docker build -t clubholo/backend:latest backend'
+      }
+    }
+    stage('Build Frontend') {
+      steps {
+        sh 'docker build -t clubholo/frontend:latest frontend'
+      }
+    }
+    stage('Push') {
+      steps {
+        // push to registry (configure credentials)
+        echo 'Push to container registry (configure in Jenkins credentials)'
+      }
+    }
+    stage('Deploy') {
+      steps {
+        echo 'kubectl apply -f deployment/'
+      }
+    }
+  }
+}

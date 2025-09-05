@@ -1,0 +1,10 @@
+{
+  "chat_message": {
+    "_id": "<ObjectId>",
+    "room_id": "general",
+    "sender": "rahul",
+    "content": "Hello team!",
+    "sent_at": "ISODate(...)",
+    "encrypted": false
+  }
+}

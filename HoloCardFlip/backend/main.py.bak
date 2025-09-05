@@ -1,0 +1,98 @@
+from fastapi import FastAPI, HTTPException, Depends, WebSocket
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List
+import uvicorn
+import time
+# NOTE: This is a minimal scaffold for demonstration. Replace stubs with real DB and auth.
+
+app = FastAPI(title="ClubHoloHub API")
+
+origins = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Simple in-memory user store (replace with Postgres + SQLAlchemy) ---
+fake_users = {}
+class User(BaseModel):
+    username: str
+    email: str
+    full_name: str = ""
+    password: str
+
+class Member(BaseModel):
+    id: int
+    name: str
+    bio: str = ""
+    achievements: List[str] = []
+
+class Event(BaseModel):
+    id: int
+    title: str
+    start_time: float
+    description: str = ""
+    seats: int = 0
+
+members = [
+    Member(id=1, name="Asha Verma", bio="Robotics lead", achievements=["Won RoboFest"]),
+    Member(id=2, name="Rahul Desai", bio="Game Dev", achievements=["Released Indie Game"])
+]
+events = [
+    Event(id=1, title="Hacknight", start_time=time.time()+86400, description="24h hackathon", seats=50)
+]
+
+# --- Auth stubs ---
+@app.post("/signup")
+def signup(user: User):
+    if user.username in fake_users:
+        raise HTTPException(400, "User exists")
+    fake_users[user.username] = user
+    return {"ok": True}
+
+@app.post("/login")
+def login(form: OAuth2PasswordRequestForm = Depends()):
+    u = fake_users.get(form.username)
+    if not u or u.password != form.password:
+        raise HTTPException(401, "Invalid creds")
+    # Return a fake JWT token (replace with real JWT)
+    return {"access_token": f"fake-jwt-token-for-{u.username}", "token_type": "bearer"}
+
+# --- API endpoints ---
+@app.get("/members", response_model=List[Member])
+def list_members():
+    return members
+
+@app.get("/events", response_model=List[Event])
+def list_events():
+    return events
+
+# --- WebSocket echo for chat demo (replace with socket.io + redis pubsub) ---
+@app.websocket("/ws/chat")
+async def websocket_chat(ws: WebSocket):
+    await ws.accept()
+    try:
+        while True:
+            data = await ws.receive_text()
+            # echo back; implement redis pubsub for multi-node scaling
+            await ws.send_text(f"echo: {data}")
+    except:
+        await ws.close()
+
+# --- Simple recommender stub ---
+@app.get("/recommend_feed/{username}")
+def recommend_feed(username: str, limit: int = 10):
+    # Replace with model inference: user embeddings + content embeddings + retrieval + rerank
+    return {"username": username, "feed": [{"type": "event", "id": e.id, "title": e.title} for e in events]}
+
+if __name__ == '__main__':
+    uvicorn.run(app, host='0.0.0.0', port=8000)
